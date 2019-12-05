@@ -1,6 +1,7 @@
 package jp.ac.agu.wil;
 
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
@@ -13,7 +14,7 @@ public class Record {
     private short[] shortBuf; //オーディオレコード用バッファ
     String TAG="Record";
 
-    public void initAudioRecord(String fileName){
+    public void initAudioRecord(String fileName, AudioManager audioManager){
         wav=new WaveFile();
         wav.createFile(fileName);
         //AudioRecordオブジェクトを作成
@@ -24,7 +25,8 @@ public class Record {
                 AudioFormat.ENCODING_PCM_16BIT);
         //インスタンス生成
         audioRecord = new AudioRecord(
-                MediaRecorder.AudioSource.MIC, //audioManager.STREAM_VOICE_CALL,
+                //MediaRecorder.AudioSource.MIC,
+                audioManager.STREAM_VOICE_CALL,
                 SAMPLING_RATE,
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT,
@@ -60,6 +62,7 @@ public class Record {
         Log.d(TAG,"stopAudioRecord(): stop recording");
         audioRecord.stop();
         audioRecord.release();
+        wav.close();
     }
 
 }

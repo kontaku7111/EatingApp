@@ -10,8 +10,8 @@ import java.io.RandomAccessFile;
 
 public class WaveFile {
     private static final String TAG="WaveFile";
-    private final int FILESIZE_SEEK=4;
-    private final int DATASIZE_SEEK=40;
+    private static final int FILE_SIZE_SEEK=4;
+    private static final int DATA_SIZE_SEEK=40;
 
     private final int SAMPLING_RATE=8000;
     private RandomAccessFile raf; //リアルタイム処理なのでランダムアクセスファイルクラスを使用する
@@ -127,7 +127,7 @@ public class WaveFile {
         fileSize = (int) (recFile.length() - 8);
         byte[] fileSizeBytes = littleEndianInteger(fileSize);
         try {
-            raf.seek(FILESIZE_SEEK);
+            raf.seek(FILE_SIZE_SEEK);
             raf.write(fileSizeBytes);
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -140,7 +140,7 @@ public class WaveFile {
         dataSize = (int) (recFile.length() - 44);
         byte[] dataSizeBytes = littleEndianInteger(dataSize);
         try {
-            raf.seek(DATASIZE_SEEK);
+            raf.seek(DATA_SIZE_SEEK);
             raf.write(dataSizeBytes);
         } catch (IOException e) {
             // TODO Auto-generated catch block
