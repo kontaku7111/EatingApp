@@ -246,8 +246,8 @@ public class MainActivity extends AppCompatActivity{
                         new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED)); // SCO stateが変わったとき
 
                 // Need to set audio mode to MODE_IN_CALL for call to startBluetoothSco() to succeed.
-                mAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION); //SCOモードにする前に変更
-                Log.d(TAG,"MODE_IN_COMMUNICATION");
+                mAudioManager.setMode(AudioManager.MODE_IN_CALL); //SCOモードにする前に変更
+                Log.d(TAG,"MODE_IN_CALL");
                 mIsCountDownOn = true;
                 // mCountDown repeatedly tries to start bluetooth Sco audio connection.
                 mCountDown.start(); //タイマースタート
