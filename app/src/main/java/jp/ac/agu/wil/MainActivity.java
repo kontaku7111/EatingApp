@@ -6,7 +6,6 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
@@ -29,6 +28,8 @@ import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static android.os.Environment.DIRECTORY_MUSIC;
 
 public class MainActivity extends AppCompatActivity{
     TextView DebugMessage;
@@ -68,8 +69,10 @@ public class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         DebugMessage=findViewById(R.id.DebugMessage);
+        EnableButton(R.id.start_button,false);
+        EnableButton(R.id.stop_button,false);
         //パス取得
-        File path_storage=getExternalFilesDir(Environment.DIRECTORY_MUSIC);
+        File path_storage=getExternalFilesDir(DIRECTORY_MUSIC);
         path=path_storage.getAbsolutePath();
         Log.d(TAG,"onCreate(): path: "+path);
         //permission変更
@@ -140,6 +143,7 @@ public class MainActivity extends AppCompatActivity{
         }
         // Initialize AudioRecord
         // AudioRecordの初期化
+        Log.d(TAG,"FileName: "+fileName);
         rec.initAudioRecord(fileName,mAudioManager);
         if(rec.audioRecord==null){
             Log.d(TAG,"run_loop(): ====Failed to initialize AudioRecord====");
@@ -177,7 +181,6 @@ public class MainActivity extends AppCompatActivity{
                 EnableButton(R.id.start_button,true);
                 EnableButton(R.id.stop_button,false);
                 do_loopback(false);
-                rec=null;
                 break;
 
             default:
@@ -244,7 +247,7 @@ public class MainActivity extends AppCompatActivity{
 
                 // Need to set audio mode to MODE_IN_CALL for call to startBluetoothSco() to succeed.
                 mAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION); //SCOモードにする前に変更
-
+                Log.d(TAG,"MODE_IN_COMMUNICATION");
                 mIsCountDownOn = true;
                 // mCountDown repeatedly tries to start bluetooth Sco audio connection.
                 mCountDown.start(); //タイマースタート
@@ -293,7 +296,9 @@ public class MainActivity extends AppCompatActivity{
                         // Calling startBluetoothSco() always returns faIL here,
                         // that why a count down timer is implemented to call
                         // startBluetoothSco() in the onTick.
-                        mAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+                        mAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                        //MODE_IN_CALLにしなければ骨伝導音取得不可
+                        Log.d(TAG,"MODE_IN_CALL");
                         mIsCountDownOn = true;
                         mCountDown.start();
                         onHeadsetConnected();
@@ -315,7 +320,8 @@ public class MainActivity extends AppCompatActivity{
 
                 if(state == AudioManager.SCO_AUDIO_STATE_CONNECTED){ // SCOに接続されたとき
                     mIsOnHeadsetSco =true;
-
+                    EnableButton(R.id.start_button,true);
+                    EnableButton(R.id.stop_button,false);
                     if(mIsStarting) {
                         // アプリケーションが開始する前にデバイスが接続されたとき
                         // ACTION_ACL_CONNECTEDが受け取れないので、

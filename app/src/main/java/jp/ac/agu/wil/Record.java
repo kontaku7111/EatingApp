@@ -3,7 +3,6 @@ package jp.ac.agu.wil;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
-import android.media.MediaRecorder;
 import android.util.Log;
 
 public class Record {
