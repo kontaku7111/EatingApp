@@ -170,7 +170,16 @@ public class MainActivity extends AppCompatActivity{
                 DateFormat df=new SimpleDateFormat("yyyyMMddHHmmss");
                 java.util.Date date = new Date(System.currentTimeMillis());
                 Date=df.format(date);
-                fileName=path+"/"+Date+".wav";
+                //音声ファイルとcsvファイルを保存するディレクトリ作成
+                File dir=new File(path+"/"+Date);
+                if(!dir.exists()){
+                    if(dir.mkdirs()){
+                        Log.d(TAG,"Succeed in creating a folder");
+                    }else{
+                        Log.d(TAG,"Fail to create a folder");
+                    }
+                }
+                fileName=path+"/"+Date+"/"+Date+".wav";
                 Log.d(TAG,"BtnClick(): fileName: "+fileName);
                 rec=new Record();
                 do_loopback(true);

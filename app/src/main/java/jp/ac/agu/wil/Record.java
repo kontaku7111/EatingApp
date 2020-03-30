@@ -44,6 +44,7 @@ public class Record {
             public void onPeriodicNotification(AudioRecord recorder) {
                 //.d(TAG, "録音コールバック");
                 audioRecord.read(shortBuf, 0, bufferSize/2 );
+                Log.d("SensorValue", String.valueOf(shortBuf));
                 wav.addBigEndianData(shortBuf);
             }
         });
