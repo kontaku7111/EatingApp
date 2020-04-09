@@ -47,6 +47,13 @@
                 android:text="@string/stop" />
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/chewing_count"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="30dp"
+            android:text="Chew count: 0" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

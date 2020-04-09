@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 public class CsvHandle {
     String fileName;
@@ -29,9 +30,13 @@ public class CsvHandle {
         }
     }
     //ファイル書き込み
-    public void write(String strData) throws IOException {
-        bufferedWriter.write(strData);
-        bufferedWriter.newLine();
+    public void write(double[] rawData) throws IOException {
+//        bufferedWriter.write(Arrays.toString(rawData));
+//        bufferedWriter.newLine();
+        for(int i=0;i<rawData.length;i++){
+            bufferedWriter.write(Double.toString(rawData[i]));
+            bufferedWriter.newLine();
+        }
     }
     //ファイルを閉じる
     public void close() throws IOException {

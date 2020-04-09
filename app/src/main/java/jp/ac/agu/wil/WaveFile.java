@@ -30,9 +30,9 @@ public class WaveFile {
     private int dataSize = 0; //波形データのバイト数
     //short型は16ビットで-32768～32767
 
-    public	void	createFile(String	fName){
+    public	void	createFile(String path,String date){
         //String型をUri型に変換
-        Uri newUri=Uri.parse(fName);
+        Uri newUri=Uri.parse(path+"/"+date+"/"+date+".wav");
         //	ファイルを作成
         recFile	=	new	File(newUri.getPath());
 
@@ -71,18 +71,31 @@ public class WaveFile {
         //wavのヘッダを書き込み
         try	{
             raf.seek(0);
+            //RIFFヘッダ [4byte]
             raf.write(RIFF);
+            // これ以降のファイルサイズ（ファイルサイズ-8）, -8はRIFFヘッダとこのファイルサイズ指定分 [4byte]
             raf.write(littleEndianInteger(fileSize));
+            // WAVE ヘッダ。RIFFの種類がWAVEであることを表す [4byte]
             raf.write(WAVE);
+            // fmtチャンク。フォーマットの定義 [4byte]
             raf.write(fmt);
+            //バイト数。fmtチャンクのバイト数。リニアPCMならば16。本アプリはリニアPCM [4byte]
             raf.write(littleEndianInteger(fmtSize));
+            // フォーマットID。リニアPCMなら１ [2byte]
             raf.write(fmtID);
+            //チャンネル数。モノラルならば1, ステレオならば2 [2byte]
             raf.write(littleEndianShort(chCount));
-            raf.write(littleEndianInteger(SAMPLING_RATE)); //サンプリング周波数
+            // サンプリングレート [4byte]
+            raf.write(littleEndianInteger(SAMPLING_RATE));
+            // データ速度 (Byte/sec) = サンプリングレート * (8bitの場合１、16bitの場合２) * (モノラルならば１、ステレオなら２) [4byte]
             raf.write(littleEndianInteger(bytePerSec));
+            // ブロックサイズ (Byte/sample*チャンネル数) = (8bitの場合１、16bitの場合２) * (モノラルならば１、ステレオなら２) [2byte]
             raf.write(littleEndianShort(blockSize));
+            // サンプルあたりのビット数 (bit/sample) = 8 or 16 (bit) [2byte]
             raf.write(littleEndianShort(bitPerSample));
+            // dataチャンク [4byte]
             raf.write(data);
+            // 波形データのバイト数 [4byte]
             raf.write(littleEndianInteger(dataSize));
 
         }	catch	(IOException	e)	{
@@ -103,8 +116,8 @@ public class WaveFile {
 
     // PCMデータを追記するメソッド
     public void addBigEndianData(short[] shortData){
-        Log.d(TAG, "addBigEndianData: " + shortData[0]);
-
+        Log.d(TAG, "addBigEndianData: " + shortData[1]);//shortData[0]);
+        Log.d(TAG,"addBigEndianData: "+shortData.length);
         // ファイルにデータを追記
         try {
             raf.seek(raf.length());

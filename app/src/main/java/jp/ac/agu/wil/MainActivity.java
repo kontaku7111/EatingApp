@@ -18,13 +18,14 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -32,15 +33,17 @@ import java.util.Date;
 import static android.os.Environment.DIRECTORY_MUSIC;
 
 public class MainActivity extends AppCompatActivity{
-    TextView DebugMessage;
+    public TextView DebugMessage;
+    // 他クラスでも利用できるようにstatic付与
+    public static TextView chewCount;
     Thread m_thread=null;
     Record rec=null;
     String path;
-    String fileName;
     AudioManager mAudioManager;
     int REQUEST_ENABLE_BT=1;
     String TAG="MainActivity";
     public String Date=null;
+
     // Permission関連
     private static final int REQUEST_EXTERNAL_STORAGE_CODE=1;
     private static String[] mPermissions={
@@ -64,11 +67,14 @@ public class MainActivity extends AppCompatActivity{
 
     private int activitiesCount; //アプリがバックグラウンド状態かそうでないか
 
+    Handler handler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         DebugMessage=findViewById(R.id.DebugMessage);
+        chewCount=findViewById(R.id.chewing_count);
         EnableButton(R.id.start_button,false);
         EnableButton(R.id.stop_button,false);
         //パス取得
@@ -127,13 +133,17 @@ public class MainActivity extends AppCompatActivity{
         m_thread = new Thread(new Thread(new Runnable() {
             @Override
             public void run() {
-                run_loop(flag);
+                try {
+                    run_loop(flag);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }));
         m_thread.start();
     }
     //ループを実行する
-    public void run_loop(boolean isRunning){
+    public void run_loop(boolean isRunning) throws IOException {
         // If Stop Button is pressed
         // Stopボタン押されたとき
         if(false==isRunning){
@@ -143,8 +153,7 @@ public class MainActivity extends AppCompatActivity{
         }
         // Initialize AudioRecord
         // AudioRecordの初期化
-        Log.d(TAG,"FileName: "+fileName);
-        rec.initAudioRecord(fileName,mAudioManager);
+        rec.initAudioRecord(path, Date, mAudioManager);
         if(rec.audioRecord==null){
             Log.d(TAG,"run_loop(): ====Failed to initialize AudioRecord====");
             return;
@@ -179,8 +188,6 @@ public class MainActivity extends AppCompatActivity{
                         Log.d(TAG,"Fail to create a folder");
                     }
                 }
-                fileName=path+"/"+Date+"/"+Date+".wav";
-                Log.d(TAG,"BtnClick(): fileName: "+fileName);
                 rec=new Record();
                 do_loopback(true);
                 break;
@@ -333,7 +340,6 @@ public class MainActivity extends AppCompatActivity{
                     EnableButton(R.id.stop_button,false);
                     if(mIsStarting) {
                         // アプリケーションが開始する前にデバイスが接続されたとき
-                        // ACTION_ACL_CONNECTEDが受け取れないので、
                         mIsStarting = false;
                         onHeadsetConnected();
                     }
