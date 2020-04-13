@@ -15,9 +15,15 @@ public class Record {
     private ShortTermEnergy ste;
     private int bufferSize;//オーディオレコード用バッファのサイズ
     private short[] shortBuf; //オーディオレコード用バッファ
-    private boolean chewFlag;
-    final double threshold=3;
+    private int chewFlag;
+    final double threshold=1;
     public int chewingCount;
+    public int callbackCountRecordedLastChew; //咀嚼の検出後のコールバック回数
+    public final int PERIOD_BTWN_CHEWS=12; // １回の咀嚼は0.3sぐらいだが適切なものに調整
+    public boolean notCountChew; // 咀嚼と判定しない
+    final double thresholdTalking=50; // STEの値が50を超えたら会話
+    final int RESET_COUNT=75; // 3s間咀嚼が検出されなかったらリセット
+    public int countAfterChew; // 咀嚼検出後コールバック呼び出しの際にインクリメント
 
     String TAG="Record";
 
@@ -45,6 +51,10 @@ public class Record {
         shortBuf = new short[bufferSize/2];
         // short term energy
         ste=new ShortTermEnergy(shortBuf.length);
+        callbackCountRecordedLastChew=0;
+        notCountChew=false;
+        chewFlag=0;
+        countAfterChew=-99;
 
         //コールバックを指定
         audioRecord.setRecordPositionUpdateListener(new AudioRecord.OnRecordPositionUpdateListener(){
@@ -68,24 +78,49 @@ public class Record {
                 //
                 //咀嚼計測
                 //
+                if (countAfterChew==RESET_COUNT){
+                    countAfterChew=-99;
+                    chewingCount=0;
+                    MainActivity.chewCount.setText("Chew count: "+chewingCount);
+                }
+                if (notCountChew==true && callbackCountRecordedLastChew>PERIOD_BTWN_CHEWS){
+                    notCountChew=false;
+                    callbackCountRecordedLastChew=0;
+                    Log.d("ChewCount","Reset Callback Count");
+                }
                 for(int i=0;i<energy.length;i++){
                     //閾値を上回っている
                     if (energy[i]>=threshold){
                         // 直前のデータが閾値を下回っている場合
-                        if (!chewFlag){
-                            chewFlag=true;
+                        if (0==chewFlag){
+                            chewFlag=1;
+                        }else if (1==chewFlag && thresholdTalking<=energy[i]){
+                            chewFlag=2;
                         }
                     }
                     //閾値を下回る
                     else{
-                        if(chewFlag){
-                            chewFlag=false;
-                            chewingCount=chewingCount+1;
-                            Log.d("chewing","update chewingc ount");
-                            MainActivity.chewCount.setText("Chew count: "+chewingCount);
+                        if(1<=chewFlag){
+                            if(!notCountChew && chewFlag==1){
+                                chewingCount=chewingCount+1;
+                                Log.d("chewing","update chewingc ount");
+                                MainActivity.chewCount.setText("Chew count: "+chewingCount);
+                                notCountChew=true;
+                                countAfterChew=0;
+                            }
+                            chewFlag=0;
                         }
-
                     }
+                }
+
+                // 咀嚼が検出されて0.3s以内
+                if(notCountChew){
+                    callbackCountRecordedLastChew++;
+                    Log.d("ChewCount","callback count: "+callbackCountRecordedLastChew);
+                }
+                //咀嚼が検出後のみ
+                if(countAfterChew!=-99){
+                    countAfterChew++;
                 }
                 //
                 //
