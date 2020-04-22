@@ -36,6 +36,9 @@ public class MainActivity extends AppCompatActivity{
     public TextView DebugMessage;
     // 他クラスでも利用できるようにstatic付与
     public static TextView chewCount;
+    public static int total_chewingCount;
+    public static int bite_chewingCount;
+    public static boolean isTotal;
     Thread m_thread=null;
     Record rec=null;
     String path;
@@ -90,6 +93,9 @@ public class MainActivity extends AppCompatActivity{
         mContext=this;
         bluetoothHandler=new BluetoothHandler(mBluetoothAdapter,mAudioManager,mContext);
         bluetoothHandler.activitiesCount=-1;
+        bite_chewingCount=0;
+        total_chewingCount=0;
+        isTotal=false;
     }
 
     private static void verifyPermissions(Activity activity){
@@ -196,7 +202,21 @@ public class MainActivity extends AppCompatActivity{
                 EnableButton(R.id.stop_button,false);
                 do_loopback(false);
                 break;
-
+            case R.id.bite_button:
+                DebugMessage.setText("Display chewing count every bite");
+                isTotal=false;
+                chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+                break;
+            case R.id.total_button:
+                DebugMessage.setText("Display chewing count in total");
+                isTotal=true;
+                chewCount.setText("Chew count (Total): "+MainActivity.total_chewingCount);
+                break;
+            case R.id.reset_button:
+                DebugMessage.setText("Reset chewing count in total");
+                total_chewingCount=0;
+                chewCount.setText("Chew count (Total): "+MainActivity.total_chewingCount);
+                break;
             default:
                 break;
         }

@@ -16,12 +16,11 @@ public class Record {
     private int bufferSize;//オーディオレコード用バッファのサイズ
     private short[] shortBuf; //オーディオレコード用バッファ
     private int chewFlag;
-    final double threshold=1;
-    public int chewingCount;
+    final double threshold=0.5;
     public int callbackCountRecordedLastChew; //咀嚼の検出後のコールバック回数
     public final int PERIOD_BTWN_CHEWS=12; // １回の咀嚼は0.3sぐらいだが適切なものに調整
     public boolean notCountChew; // 咀嚼と判定しない
-    final double thresholdTalking=50; // STEの値が50を超えたら会話
+    final double thresholdTalking=10; // STEの値が10を超えたら会話
     final int RESET_COUNT=75; // 3s間咀嚼が検出されなかったらリセット
     public int countAfterChew; // 咀嚼検出後コールバック呼び出しの際にインクリメント
 
@@ -80,8 +79,10 @@ public class Record {
                 //
                 if (countAfterChew==RESET_COUNT){
                     countAfterChew=-99;
-                    chewingCount=0;
-                    MainActivity.chewCount.setText("Chew count: "+chewingCount);
+                    MainActivity.bite_chewingCount=0;
+                    if(!MainActivity.isTotal){
+                        MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+                    }
                 }
                 if (notCountChew==true && callbackCountRecordedLastChew>PERIOD_BTWN_CHEWS){
                     notCountChew=false;
@@ -102,9 +103,14 @@ public class Record {
                     else{
                         if(1<=chewFlag){
                             if(!notCountChew && chewFlag==1){
-                                chewingCount=chewingCount+1;
+                                MainActivity.bite_chewingCount=MainActivity.bite_chewingCount+1;
+                                MainActivity.total_chewingCount=MainActivity.total_chewingCount+1;
                                 Log.d("chewing","update chewingc ount");
-                                MainActivity.chewCount.setText("Chew count: "+chewingCount);
+                                if(MainActivity.isTotal){
+                                    MainActivity.chewCount.setText("Chew count (Total): "+MainActivity.total_chewingCount);
+                                }else {
+                                    MainActivity.chewCount.setText("Chew count (Bite): " + MainActivity.bite_chewingCount);
+                                }
                                 notCountChew=true;
                                 countAfterChew=0;
                             }
@@ -122,6 +128,7 @@ public class Record {
                 if(countAfterChew!=-99){
                     countAfterChew++;
                 }
+                //
                 //
                 //
                 //csvファイルに書き込み
