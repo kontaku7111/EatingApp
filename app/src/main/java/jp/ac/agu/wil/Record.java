@@ -15,14 +15,7 @@ public class Record {
     private ShortTermEnergy ste;
     private int bufferSize;//オーディオレコード用バッファのサイズ
     private short[] shortBuf; //オーディオレコード用バッファ
-    private int chewFlag;
-    final double threshold=0.5;
-    public int callbackCountRecordedLastChew; //咀嚼の検出後のコールバック回数
-    public final int PERIOD_BTWN_CHEWS=12; // １回の咀嚼は0.3sぐらいだが適切なものに調整
-    public boolean notCountChew; // 咀嚼と判定しない
-    final double thresholdTalking=10; // STEの値が10を超えたら会話
-    final int RESET_COUNT=75; // 3s間咀嚼が検出されなかったらリセット
-    public int countAfterChew; // 咀嚼検出後コールバック呼び出しの際にインクリメント
+    private Segmentation seg;
 
     String TAG="Record";
 
@@ -48,12 +41,8 @@ public class Record {
                 bufferSize);
 
         shortBuf = new short[bufferSize/2];
-        // short term energy
-        ste=new ShortTermEnergy(shortBuf.length);
-        callbackCountRecordedLastChew=0;
-        notCountChew=false;
-        chewFlag=0;
-        countAfterChew=-99;
+
+        seg = new Segmentation();
 
         //コールバックを指定
         audioRecord.setRecordPositionUpdateListener(new AudioRecord.OnRecordPositionUpdateListener(){
@@ -73,61 +62,10 @@ public class Record {
                 for(int i=0;i<shortBuf.length;i++){
                     rawData[i]=(double) shortBuf[i]/ 32768;
                 }
-                double[] energy=ste.calculate(rawData);
                 //
                 //咀嚼計測
                 //
-                if (countAfterChew==RESET_COUNT){
-                    countAfterChew=-99;
-                    MainActivity.bite_chewingCount=0;
-                    if(!MainActivity.isTotal){
-                        MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
-                    }
-                }
-                if (notCountChew==true && callbackCountRecordedLastChew>PERIOD_BTWN_CHEWS){
-                    notCountChew=false;
-                    callbackCountRecordedLastChew=0;
-                    Log.d("ChewCount","Reset Callback Count");
-                }
-                for(int i=0;i<energy.length;i++){
-                    //閾値を上回っている
-                    if (energy[i]>=threshold){
-                        // 直前のデータが閾値を下回っている場合
-                        if (0==chewFlag){
-                            chewFlag=1;
-                        }else if (1==chewFlag && thresholdTalking<=energy[i]){
-                            chewFlag=2;
-                        }
-                    }
-                    //閾値を下回る
-                    else{
-                        if(1<=chewFlag){
-                            if(!notCountChew && chewFlag==1){
-                                MainActivity.bite_chewingCount=MainActivity.bite_chewingCount+1;
-                                MainActivity.total_chewingCount=MainActivity.total_chewingCount+1;
-                                Log.d("chewing","update chewingc ount");
-                                if(MainActivity.isTotal){
-                                    MainActivity.chewCount.setText("Chew count (Total): "+MainActivity.total_chewingCount);
-                                }else {
-                                    MainActivity.chewCount.setText("Chew count (Bite): " + MainActivity.bite_chewingCount);
-                                }
-                                notCountChew=true;
-                                countAfterChew=0;
-                            }
-                            chewFlag=0;
-                        }
-                    }
-                }
-
-                // 咀嚼が検出されて0.3s以内
-                if(notCountChew){
-                    callbackCountRecordedLastChew++;
-                    Log.d("ChewCount","callback count: "+callbackCountRecordedLastChew);
-                }
-                //咀嚼が検出後のみ
-                if(countAfterChew!=-99){
-                    countAfterChew++;
-                }
+                seg.calculateSte(rawData);
                 //
                 //
                 //

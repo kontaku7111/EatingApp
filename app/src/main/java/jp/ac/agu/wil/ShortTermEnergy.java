@@ -6,9 +6,9 @@ public class ShortTermEnergy {
     double [] preData;
     double[] signal;
     int frame_size=320; //sample (0.04s)
-    int frame_shift=40; // sample (0.005s)
+    int frame_shift=80; // sample (0.01s)
     public ShortTermEnergy(int size){
-        //一つ前にに読み込みした音声データを入れる変数。サイズを-1にしたのは1番目のデータはSGEで使わないため
+        //一つ前にに読み込みした音声データを入れる変数。サイズを-1にしたのは1番目の要素のデータはSTEで使わないため（つまりデータ数は319）
         preData=new double[size-1];
         //ゼロで初期化
         Arrays.fill(preData,0.0);
@@ -30,6 +30,9 @@ public class ShortTermEnergy {
                 energy[i]=energy[i]+signal[j]*signal[j];
             }
         }
+        // 次の計算に必要なデータ保存
+        System.arraycopy(newData,1, preData ,0, preData.length);
         return energy;
     }
+
 }
