@@ -119,6 +119,11 @@ public class Segmentation {
                 if (30 == count300ms)
                 {
                     // 特徴量抽出
+                    double[] signal = new double[segmentedData.size()];
+                    for (int signal_i = 0; signal_i<segmentedData.size();signal_i++){
+                        signal[signal_i] = segmentedData.get(signal_i);
+                    }
+                    // Feature Extraction
                     MainActivity.bite_chewingCount++;
                     MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
                     if (thresholdFlag)
