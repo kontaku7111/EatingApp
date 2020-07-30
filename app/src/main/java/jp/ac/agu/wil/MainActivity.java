@@ -46,7 +46,8 @@ public class MainActivity extends AppCompatActivity{
     int REQUEST_ENABLE_BT=1;
     String TAG="MainActivity";
     public String Date=null;
-
+    // Assets内にあるCSVを読み込むためのクラス
+    CsvImport csvImport;
     // Permission関連
     private static final int REQUEST_EXTERNAL_STORAGE_CODE=1;
     private static String[] mPermissions={
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity{
         bite_chewingCount=0;
         total_chewingCount=0;
         isTotal=false;
+        csvImport = new CsvImport(this);
     }
 
     private static void verifyPermissions(Activity activity){

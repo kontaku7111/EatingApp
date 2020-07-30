@@ -7,6 +7,9 @@ public class ShortTermEnergy {
     double[] signal;
     int frame_size=320; //sample (0.04s)
     int frame_shift=80; // sample (0.01s)
+    public ShortTermEnergy(){
+
+    }
     public ShortTermEnergy(int size){
         //一つ前にに読み込みした音声データを入れる変数。サイズを-1にしたのは1番目の要素のデータはSTEで使わないため（つまりデータ数は319）
         preData=new double[size-1];
@@ -34,5 +37,21 @@ public class ShortTermEnergy {
         System.arraycopy(newData,1, preData ,0, preData.length);
         return energy;
     }
+
+    float[] calculate_float(double[] signal, double Fs, double frameSizeTime, double frameShiftTime){
+        int sigLen = signal.length;
+        int fsize = (int)(frameSizeTime * 8000);
+        int fshift = (int) (frameShiftTime * 8000);
+        int slideCount = (int)Math.floor((sigLen-fsize)/fshift);
+        float[] ste = new float[slideCount];
+        for (int i=0; i<slideCount; i++){
+            ste[i]= 0;
+            for(int j =i*fshift; j< i*fshift+fsize; j++){
+                ste[i] = ste[i] + (float)(signal[j] * signal[j]);
+            }
+        }
+        return ste;
+    }
+
 
 }

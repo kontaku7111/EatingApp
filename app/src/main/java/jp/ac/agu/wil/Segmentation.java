@@ -124,6 +124,8 @@ public class Segmentation {
                         signal[signal_i] = segmentedData.get(signal_i);
                     }
                     // Feature Extraction
+                    //
+                    //
                     MainActivity.bite_chewingCount++;
                     MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
                     if (thresholdFlag)
