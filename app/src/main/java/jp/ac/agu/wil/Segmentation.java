@@ -14,14 +14,19 @@ public class Segmentation {
     boolean isCountTime = false;
     int count300ms=0;
     int spareCount300ms=0;
+    // 23個の特徴を格納する変数
+    float [] feature = new float[23];
+
     ArrayList<Double> segmentedData = new ArrayList<>();
     ArrayList<Double> p3SegmentedData = new ArrayList<>();
     ArrayList<Double> spareSegmentedData = new ArrayList<>();
+    FeatureExtraction featureExtraction;
 
     public Segmentation(){
         preData = new double[frame_size-1];
         // ゼロで初期化
         Arrays.fill(preData, 0.0);
+        featureExtraction = new FeatureExtraction();
         // 処理で使う信号を格納する変数
         signal = new double[preData.length + frame_size];
     }
@@ -118,13 +123,14 @@ public class Segmentation {
                 // セグメントの開始時点から300ms経った
                 if (30 == count300ms)
                 {
-                    // 特徴量抽出
+                    // データ抽出
                     double[] signal = new double[segmentedData.size()];
                     for (int signal_i = 0; signal_i<segmentedData.size();signal_i++){
                         signal[signal_i] = segmentedData.get(signal_i);
                     }
-                    // Feature Extraction
-                    //
+                    // 特徴量抽出
+                    feature = featureExtraction.process(signal);
+                    // 分類
                     //
                     MainActivity.bite_chewingCount++;
                     MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);

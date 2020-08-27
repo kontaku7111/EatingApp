@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity{
     public static boolean isTotal;
     Thread m_thread=null;
     Record rec=null;
-    String path;
+    public static String path;
     AudioManager mAudioManager;
     int REQUEST_ENABLE_BT=1;
     String TAG="MainActivity";
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity{
         bite_chewingCount=0;
         total_chewingCount=0;
         isTotal=false;
-        csvImport = new CsvImport(this);
+
     }
 
     private static void verifyPermissions(Activity activity){

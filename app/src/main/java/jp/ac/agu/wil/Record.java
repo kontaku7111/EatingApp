@@ -67,8 +67,6 @@ public class Record {
                 //
                 seg.calculateSte(rawData);
                 //
-                //
-                //
                 //csvファイルに書き込み
                 try {
                     csv.write(rawData);
