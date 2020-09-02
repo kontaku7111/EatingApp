@@ -7,17 +7,13 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
-import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
+
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
@@ -33,7 +29,7 @@ import java.util.Date;
 import static android.os.Environment.DIRECTORY_MUSIC;
 
 public class MainActivity extends AppCompatActivity{
-    public TextView DebugMessage;
+    public static TextView DebugMessage;
     // 他クラスでも利用できるようにstatic付与
     public static TextView chewCount;
     public static int total_chewingCount;
@@ -46,8 +42,7 @@ public class MainActivity extends AppCompatActivity{
     int REQUEST_ENABLE_BT=1;
     String TAG="MainActivity";
     public String Date=null;
-    // Assets内にあるCSVを読み込むためのクラス
-    CsvImport csvImport;
+
     // Permission関連
     private static final int REQUEST_EXTERNAL_STORAGE_CODE=1;
     private static String[] mPermissions={
@@ -194,7 +189,7 @@ public class MainActivity extends AppCompatActivity{
                         Log.d(TAG,"Fail to create a folder");
                     }
                 }
-                rec=new Record();
+                rec=new Record(mContext);
                 do_loopback(true);
                 break;
 

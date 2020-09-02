@@ -1,13 +1,16 @@
 package jp.ac.agu.wil;
 
+import android.content.Context;
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Segmentation {
+public class Segmentation{
     double [] preData;
     double[] signal;
-    int frame_size=320; //sample (0.04s)
-    int frame_shift=80; // sample (0.01s)
+    int frame_size=320; //sample (0.04s, 40ms)
+    int frame_shift=80; // sample (0.01s, 10ms)
     boolean thresholdFlag =false;
     final double THRESHOLD = 0.01;
     boolean isWithin300msSegmented = false; //300msフラッグ
@@ -16,19 +19,29 @@ public class Segmentation {
     int spareCount300ms=0;
     // 23個の特徴を格納する変数
     float [] feature = new float[23];
+    // 分類モデル
+    ClassificationModel clfModel;
+    Context mcontext;
+    String predictedResult;
 
     ArrayList<Double> segmentedData = new ArrayList<>();
     ArrayList<Double> p3SegmentedData = new ArrayList<>();
     ArrayList<Double> spareSegmentedData = new ArrayList<>();
     FeatureExtraction featureExtraction;
+    double time=0;
+    double preTime = 0;
 
-    public Segmentation(){
+    public Segmentation(Context context){
         preData = new double[frame_size-1];
         // ゼロで初期化
         Arrays.fill(preData, 0.0);
         featureExtraction = new FeatureExtraction();
         // 処理で使う信号を格納する変数
         signal = new double[preData.length + frame_size];
+        // モデル呼び出し
+        mcontext=context;
+        clfModel = new ClassificationModel("trial_tree.model", mcontext);
+        preTime = System.currentTimeMillis();
     }
 
     void calculateSte(double [] newData){
@@ -41,6 +54,7 @@ public class Segmentation {
         // short term energy 実装
         for(int i=0; i<=Math.floor((signal.length-frame_size)/frame_shift);i++)
         {
+
             // STE計算
             for(int j=i*frame_shift;j<i*frame_shift+frame_size;j++)
             {
@@ -128,12 +142,37 @@ public class Segmentation {
                     for (int signal_i = 0; signal_i<segmentedData.size();signal_i++){
                         signal[signal_i] = segmentedData.get(signal_i);
                     }
+                    time = System.currentTimeMillis();
                     // 特徴量抽出
                     feature = featureExtraction.process(signal);
                     // 分類
-                    //
-                    MainActivity.bite_chewingCount++;
-                    MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+                    predictedResult = clfModel.predict(feature);
+                    Log.d("prediction", String.valueOf(time-preTime));
+                    preTime = time;
+                    switch(predictedResult){
+                        case "chew":
+                            MainActivity.bite_chewingCount++;
+                            MainActivity.total_chewingCount++;
+                            MainActivity.DebugMessage.setText("Chewing");
+                            MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+                            Log.d("prediction","chew");
+                            break;
+                        case "swallow":
+                            Log.d("prediction","swallow");
+                            MainActivity.DebugMessage.setText("Swallowing");
+                            MainActivity.bite_chewingCount = 0;
+                            MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+                            break;
+                        case "talk":
+                            MainActivity.DebugMessage.setText("Talking");
+                            Log.d("prediction","talk");
+                            break;
+                        case "other":
+                            MainActivity.DebugMessage.setText("Other");
+                            Log.d("prediction","other");
+                            break;
+                    }
+
                     if (thresholdFlag)
                     {
                         count300ms = count300ms-spareCount300ms;

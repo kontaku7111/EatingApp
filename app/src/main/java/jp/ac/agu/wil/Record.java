@@ -1,5 +1,6 @@
 package jp.ac.agu.wil;
 
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -16,8 +17,12 @@ public class Record {
     private int bufferSize;//オーディオレコード用バッファのサイズ
     private short[] shortBuf; //オーディオレコード用バッファ
     private Segmentation seg;
-
+    Context mcontext;
     String TAG="Record";
+
+    public Record(Context context){
+        mcontext = context;
+    }
 
     public void initAudioRecord(String path, String date, AudioManager audioManager){
         //waveファイル作成
@@ -42,7 +47,7 @@ public class Record {
 
         shortBuf = new short[bufferSize/2];
 
-        seg = new Segmentation();
+        seg = new Segmentation(mcontext);
 
         //コールバックを指定
         audioRecord.setRecordPositionUpdateListener(new AudioRecord.OnRecordPositionUpdateListener(){

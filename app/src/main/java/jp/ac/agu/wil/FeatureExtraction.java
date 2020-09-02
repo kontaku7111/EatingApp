@@ -1,5 +1,7 @@
 package jp.ac.agu.wil;
 
+import android.util.Log;
+
 import org.jtransforms.fft.DoubleFFT_1D;
 
 import java.util.Arrays;
@@ -200,6 +202,7 @@ public class FeatureExtraction {
         int fsize = (int)(frameSize * Fs);
         int fshift = (int) (frameShift * Fs);
         int slideCount = (int) Math.floor((len-fsize)/fshift);
+        Log.d("ADA", String.valueOf(y.length));
         float[] ada = new float[slideCount];
         for (int i=0; i<slideCount; i++){
             ada[i]= 0;
