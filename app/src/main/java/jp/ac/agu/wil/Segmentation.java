@@ -79,7 +79,7 @@ public class Segmentation{
                     else
                     {
                         // セグメントにデータ追加
-                        addSegmentedData(signal, i);
+                        addSegmentedData(signal, i,false);
                     }
                 }
                 // 直前まで閾値を超えてない
@@ -100,7 +100,7 @@ public class Segmentation{
                         isCountTime=true;
                         count300ms = -1;
                         // セグメントにデータ追加
-                        addSegmentedData(signal, i);
+                        addSegmentedData(signal, i,true);
                     }
                 }
             }
@@ -118,16 +118,18 @@ public class Segmentation{
                         segmentedData.addAll(spareSegmentedData);
                         p3SegmentedData.clear();
                         spareSegmentedData.clear();
+                        addP2SegmentedData(signal,i);
                     }
                     else
                     {
                         isWithin300msSegmented = true;
+                        addP2SegmentedData(signal,i);
                     }
                 }
-                if(thresholdFlag || isWithin300msSegmented)
-                {
-                    // P3区間のデータを追加
-                    addP3SegmentedData(signal,i);
+                else{
+                    if (isWithin300msSegmented){
+                        addP2SegmentedData(signal,i);
+                    }
                 }
             }
             // カウントアップ状態か
@@ -135,57 +137,29 @@ public class Segmentation{
             {
                 count300ms++;
                 // セグメントの開始時点から300ms経った
-                if (30 == count300ms)
+                if (30 <= count300ms)
                 {
-                    // データ抽出
-                    double[] signal = new double[segmentedData.size()];
-                    for (int signal_i = 0; signal_i<segmentedData.size();signal_i++){
-                        signal[signal_i] = segmentedData.get(signal_i);
+                    if (thresholdFlag){
+                        // 300ms以内にセグメントがあるが、既に新しいセグメンテーションを行っている
+                        if (isWithin300msSegmented){
+                            /// 特徴量抽出
+                            classification();
+                            count300ms = count300ms-spareCount300ms;
+                            // スペアのセグメントデータをセグメントデータに変更
+                            segmentedData.clear();
+                            segmentedData.addAll(spareSegmentedData);
+                            // スペアとP3セグメントを初期化
+                            spareSegmentedData.clear();
+                            p3SegmentedData.clear();
+                        }
+                        // 300ms以内にセグメントがなく、セグメンテーションを行っている途中
+                        else{
+                            break;
+                        }
                     }
-                    time = System.currentTimeMillis();
-                    // 特徴量抽出
-                    feature = featureExtraction.process(signal);
-                    // 分類
-                    predictedResult = clfModel.predict(feature);
-                    Log.d("prediction", String.valueOf(time-preTime));
-                    preTime = time;
-                    switch(predictedResult){
-                        case "chew":
-                            MainActivity.bite_chewingCount++;
-                            MainActivity.total_chewingCount++;
-                            MainActivity.DebugMessage.setText("Chewing");
-                            MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
-                            Log.d("prediction","chew");
-                            break;
-                        case "swallow":
-                            Log.d("prediction","swallow");
-                            MainActivity.DebugMessage.setText("Swallowing");
-                            MainActivity.bite_chewingCount = 0;
-                            MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
-                            break;
-                        case "talk":
-                            MainActivity.DebugMessage.setText("Talking");
-                            Log.d("prediction","talk");
-                            break;
-                        case "other":
-                            MainActivity.DebugMessage.setText("Other");
-                            Log.d("prediction","other");
-                            break;
-                    }
-
-                    if (thresholdFlag)
-                    {
-                        count300ms = count300ms-spareCount300ms;
-                        // スペアのセグメントデータをセグメントデータに変更
-                        segmentedData.clear();
-                        segmentedData.addAll(spareSegmentedData);
-                        // スペアとP3セグメントを初期化
-                        spareSegmentedData.clear();
-                        p3SegmentedData.clear();
-
-                    }
-                    else
-                    {
+                    else{
+                        // 特徴量抽出
+                        classification();
                         isCountTime = false;
                         count300ms = -1;
                         // 全てのセグメントデータを初期化
@@ -202,11 +176,54 @@ public class Segmentation{
         System.arraycopy(newData,1, preData ,0, preData.length);
     }
 
-    public void  addSegmentedData(double[] frame, int indexFrame)
-    {
-        for(int j=indexFrame*frame_shift+240;j<indexFrame*frame_shift+frame_size;j++)
-        {
-            segmentedData.add(frame[j]);
+    public void classification(){
+        // データ抽出
+        double[] signal = new double[segmentedData.size()];
+        for (int signal_i = 0; signal_i<segmentedData.size();signal_i++){
+            signal[signal_i] = segmentedData.get(signal_i);
+        }
+        time = System.currentTimeMillis();
+        // 特徴量抽出
+        feature = featureExtraction.process(signal);
+        // 分類
+        predictedResult = clfModel.predict(feature);
+        Log.d("prediction", String.valueOf(time-preTime));
+        preTime = time;
+        switch(predictedResult){
+            case "chew":
+                MainActivity.bite_chewingCount++;
+                MainActivity.total_chewingCount++;
+                MainActivity.DebugMessage.setText("Chewing");
+                MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+                Log.d("prediction","chew");
+                break;
+            case "swallow":
+                Log.d("prediction","swallow");
+                MainActivity.DebugMessage.setText("Swallowing");
+                MainActivity.bite_chewingCount = 0;
+                MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+                break;
+            case "talk":
+                MainActivity.DebugMessage.setText("Talking");
+                Log.d("prediction","talk");
+                break;
+            case "other":
+                MainActivity.DebugMessage.setText("Other");
+                Log.d("prediction","other");
+                break;
+        }
+    }
+
+    public void  addSegmentedData(double[] frame, int indexFrame, boolean isForward) {
+        if (isForward){
+            for (int j = indexFrame * frame_shift; j < indexFrame * frame_shift + frame_size; j++) {
+                segmentedData.add(frame[j]);
+            }
+        }
+        else {
+            for (int j = indexFrame * frame_shift + 240; j < indexFrame * frame_shift + frame_size; j++) {
+                segmentedData.add(frame[j]);
+            }
         }
     }
     public void addSpareSegmentedData(double [] frame, int indexFrame)
@@ -217,7 +234,7 @@ public class Segmentation{
         }
     }
 
-    public void addP3SegmentedData(double [] frame, int indexFrame)
+    public void addP2SegmentedData(double [] frame, int indexFrame)
     {
         for(int j=indexFrame*frame_shift+240;j<indexFrame*frame_shift+frame_size;j++)
         {
