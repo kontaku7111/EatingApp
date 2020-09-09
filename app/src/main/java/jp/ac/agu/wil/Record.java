@@ -75,9 +75,9 @@ public class Record {
                 //csvファイルに書き込み
                 try {
                     csv.write(rawData);
-                    Log.d(TAG,"rawData: "+rawData[0]);
+//                    Log.d(TAG,"rawData: "+rawData[0]);
                 } catch (IOException e) {
-                    Log.d(TAG,"fail to write audio to csv file");
+//                    Log.d(TAG,"fail to write audio to csv file");
                     e.printStackTrace();
                 }
             }

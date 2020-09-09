@@ -116,8 +116,8 @@ public class WaveFile {
 
     // PCMデータを追記するメソッド
     public void addBigEndianData(short[] shortData){
-        Log.d(TAG, "addBigEndianData: " + shortData[1]);//shortData[0]);
-        Log.d(TAG,"addBigEndianData: "+shortData.length);
+//        Log.d(TAG, "addBigEndianData: " + shortData[1]);//shortData[0]);
+//        Log.d(TAG,"addBigEndianData: "+shortData.length);
         // ファイルにデータを追記
         try {
             raf.seek(raf.length());

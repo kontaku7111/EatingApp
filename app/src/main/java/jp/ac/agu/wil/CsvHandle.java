@@ -49,9 +49,9 @@ public class CsvHandle {
 //        bufferedWriter.write(Arrays.toString(rawData));
 //        bufferedWriter.newLine();
         for(int i=0;i<rawData.length;i++){
-            Log.d("csv", Double.toString(rawData[i]));
+//            Log.d("csv", Double.toString(rawData[i]));
             bufferedWriter.write(Double.toString(rawData[i]));
-            Log.d("csv","have written a data");
+//            Log.d("csv","have written a data");
             bufferedWriter.newLine();
         }
     }

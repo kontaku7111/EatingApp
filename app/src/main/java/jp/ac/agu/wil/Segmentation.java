@@ -3,6 +3,7 @@ package jp.ac.agu.wil;
 import android.content.Context;
 import android.util.Log;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -25,14 +26,17 @@ public class Segmentation{
     String predictedResult;
 
     ArrayList<Double> segmentedData = new ArrayList<>();
-    ArrayList<Double> p3SegmentedData = new ArrayList<>();
+    ArrayList<Double> p2SegmentedData = new ArrayList<>();
     ArrayList<Double> spareSegmentedData = new ArrayList<>();
     FeatureExtraction featureExtraction;
     double time=0;
     double preTime = 0;
+    String TAG = "Segmentation";
+
+    Thread m_thread;
 
     public Segmentation(Context context){
-        preData = new double[frame_size-1];
+        preData = new double[frame_size-frame_shift];
         // ゼロで初期化
         Arrays.fill(preData, 0.0);
         featureExtraction = new FeatureExtraction();
@@ -40,7 +44,7 @@ public class Segmentation{
         signal = new double[preData.length + frame_size];
         // モデル呼び出し
         mcontext=context;
-        clfModel = new ClassificationModel("trial_tree.model", mcontext);
+        clfModel = new ClassificationModel("rf_eating.model", mcontext);
         preTime = System.currentTimeMillis();
     }
 
@@ -54,7 +58,7 @@ public class Segmentation{
         // short term energy 実装
         for(int i=0; i<=Math.floor((signal.length-frame_size)/frame_shift);i++)
         {
-
+//            Log.d(TAG, "frame shift count: "+i);
             // STE計算
             for(int j=i*frame_shift;j<i*frame_shift+frame_size;j++)
             {
@@ -89,6 +93,8 @@ public class Segmentation{
                     if (isWithin300msSegmented)
                     {
                         // 予備セグメント初期化とデータ追加
+                        spareCount300ms=0;
+                        isWithin300msSegmented=false;
                         spareSegmentedData.clear();
                         addSpareSegmentedData(signal, i);
                         // どの時点で予備セグメントが作成されたか記録
@@ -114,9 +120,9 @@ public class Segmentation{
                     if (isWithin300msSegmented)
                     {
                         // 2つ前のセグメントと直前のセグメント、その間の区間P3をマージ
-                        segmentedData.addAll(p3SegmentedData);
+                        segmentedData.addAll(p2SegmentedData);
                         segmentedData.addAll(spareSegmentedData);
-                        p3SegmentedData.clear();
+                        p2SegmentedData.clear();
                         spareSegmentedData.clear();
                         addP2SegmentedData(signal,i);
                     }
@@ -136,21 +142,30 @@ public class Segmentation{
             if (isCountTime)
             {
                 count300ms++;
-                // セグメントの開始時点から300ms経った
-                if (30 <= count300ms)
+                Log.d(TAG, "count300Time: "+ count300ms);
+                // セグメントの開始時点から300ms経った →　400msに変更
+                if (40 <= count300ms)
                 {
                     if (thresholdFlag){
                         // 300ms以内にセグメントがあるが、既に新しいセグメンテーションを行っている
                         if (isWithin300msSegmented){
                             /// 特徴量抽出
-                            classification();
+                            new Thread(new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                        classification();
+                                }
+                            })).start();
                             count300ms = count300ms-spareCount300ms;
+
+                            spareCount300ms=0;
+                            isWithin300msSegmented = false;
                             // スペアのセグメントデータをセグメントデータに変更
                             segmentedData.clear();
                             segmentedData.addAll(spareSegmentedData);
                             // スペアとP3セグメントを初期化
                             spareSegmentedData.clear();
-                            p3SegmentedData.clear();
+                            p2SegmentedData.clear();
                         }
                         // 300ms以内にセグメントがなく、セグメンテーションを行っている途中
                         else{
@@ -165,7 +180,7 @@ public class Segmentation{
                         // 全てのセグメントデータを初期化
                         segmentedData.clear();
                         spareSegmentedData.clear();
-                        p3SegmentedData.clear();
+                        p2SegmentedData.clear();
                     }
                     isWithin300msSegmented = false;
                 }
@@ -182,12 +197,13 @@ public class Segmentation{
         for (int signal_i = 0; signal_i<segmentedData.size();signal_i++){
             signal[signal_i] = segmentedData.get(signal_i);
         }
+        Log.d(TAG, "segment size: "+signal.length);
         time = System.currentTimeMillis();
         // 特徴量抽出
         feature = featureExtraction.process(signal);
         // 分類
         predictedResult = clfModel.predict(feature);
-        Log.d("prediction", String.valueOf(time-preTime));
+        Log.d("prediction", "Prediction Time: "+String.valueOf(time-preTime) + "ms");
         preTime = time;
         switch(predictedResult){
             case "chew":
@@ -226,6 +242,7 @@ public class Segmentation{
             }
         }
     }
+
     public void addSpareSegmentedData(double [] frame, int indexFrame)
     {
         for(int j=indexFrame*frame_shift+240;j<indexFrame*frame_shift+frame_size;j++)
@@ -238,7 +255,7 @@ public class Segmentation{
     {
         for(int j=indexFrame*frame_shift+240;j<indexFrame*frame_shift+frame_size;j++)
         {
-            p3SegmentedData.add(frame[j]);
+            p2SegmentedData.add(frame[j]);
         }
     }
 }
