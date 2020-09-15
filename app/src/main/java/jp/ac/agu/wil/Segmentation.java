@@ -32,6 +32,7 @@ public class Segmentation{
     double time=0;
     double preTime = 0;
     String TAG = "Segmentation";
+    CsvHandle csv;
 
     Thread m_thread;
 
@@ -46,9 +47,11 @@ public class Segmentation{
         mcontext=context;
         clfModel = new ClassificationModel("rf_eating.model", mcontext);
         preTime = System.currentTimeMillis();
+        // セグメンテーション書き出し
+        csv = new CsvHandle("/storage/emulated/0/Android/data/jp.ac.agu.wil/files/Music");
     }
 
-    void calculateSte(double [] newData){
+    void calculateSte(double [] newData) throws IOException {
         // Short term energyを音声信号にかけて得られた信号を格納する変数作成
         double [] energy = new double[(int)Math.floor((signal.length-frame_size)/frame_shift)+1];
 
@@ -100,7 +103,7 @@ public class Segmentation{
                         // どの時点で予備セグメントが作成されたか記録
                         spareCount300ms = count300ms + 1;
                     }
-                    //　300ms以内にセグメンテーションが行われてない
+                    //　300ms以内にセグメントがない
                     else
                     {
                         isCountTime=true;
@@ -133,8 +136,18 @@ public class Segmentation{
                     }
                 }
                 else{
+                    // セグメントが300ms以内に存在する
                     if (isWithin300msSegmented){
                         addP2SegmentedData(signal,i);
+                    }
+                    else{
+                        double [] rawData =new double [80];
+                        int raw_index =0;
+                        for (int j = i * frame_shift + 240; j < i * frame_shift + frame_size; j++) {
+                            rawData[raw_index] = signal[j];
+                            raw_index++;
+                        }
+                        csv.write(rawData,false);
                     }
                 }
             }
@@ -160,6 +173,8 @@ public class Segmentation{
 
                             spareCount300ms=0;
                             isWithin300msSegmented = false;
+                            csv.write(removeInitial240Sample(wrapperToPrimitive(segmentedData)),true);
+                            csv.write(wrapperToPrimitive(p2SegmentedData),false);
                             // スペアのセグメントデータをセグメントデータに変更
                             segmentedData.clear();
                             segmentedData.addAll(spareSegmentedData);
@@ -175,6 +190,8 @@ public class Segmentation{
                     else{
                         // 特徴量抽出
                         classification();
+                        csv.write(removeInitial240Sample(wrapperToPrimitive(segmentedData)),true);
+                        csv.write(wrapperToPrimitive(p2SegmentedData),false);
                         isCountTime = false;
                         count300ms = -1;
                         // 全てのセグメントデータを初期化
@@ -189,6 +206,26 @@ public class Segmentation{
         }
         // 次の計算に必要なデータ保存
         System.arraycopy(newData,1, preData ,0, preData.length);
+    }
+
+    public double []  wrapperToPrimitive(ArrayList<Double> data){
+        double[] doubleData = new double[data.size()];
+        for (int data_i = 0; data_i<data.size();data_i++){
+            doubleData[data_i] = data.get(data_i);
+        }
+        return doubleData;
+    }
+
+    public double [] removeInitial240Sample(double[] segmentedData){
+        double [] removedData = new double[segmentedData.length-240];
+        for (int data_i = 0; data_i < removedData.length; data_i++){
+            removedData[data_i] = segmentedData[data_i+240];
+        }
+        return removedData;
+    }
+
+    public void csvClose() throws IOException {
+        csv.close();
     }
 
     public void classification(){
