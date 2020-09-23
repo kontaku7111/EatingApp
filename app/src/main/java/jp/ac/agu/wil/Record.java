@@ -29,7 +29,7 @@ public class Record {
         wav=new WaveFile();
         wav.createFile(path, date);
         //csvファイル作成
-        csv=new CsvHandle(path, date);
+//        csv=new CsvHandle(path, date);
         //AudioRecordオブジェクトを作成
         //バッファサイズを計算
         bufferSize = AudioRecord.getMinBufferSize(
@@ -70,16 +70,20 @@ public class Record {
                 //
                 //咀嚼計測
                 //
-                seg.calculateSte(rawData);
-                //
-                //csvファイルに書き込み
                 try {
-                    csv.write(rawData);
-//                    Log.d(TAG,"rawData: "+rawData[0]);
+                    seg.calculateSte(rawData);
                 } catch (IOException e) {
-//                    Log.d(TAG,"fail to write audio to csv file");
                     e.printStackTrace();
                 }
+//                //
+//                //csvファイルに書き込み
+//                try {
+//                    csv.write(rawData);
+////                    Log.d(TAG,"rawData: "+rawData[0]);
+//                } catch (IOException e) {
+////                    Log.d(TAG,"fail to write audio to csv file");
+//                    e.printStackTrace();
+//                }
             }
         });
         // コールバックが呼ばれる間隔を指定
@@ -97,7 +101,8 @@ public class Record {
         audioRecord.stop();
         audioRecord.release();
         wav.close();
-        csv.close();
+//        csv.close();
+        seg.csvClose();
     }
 
 }

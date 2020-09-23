@@ -30,8 +30,8 @@ public class CsvHandle {
         }
     }
     public CsvHandle(String path) {
-        fileName=path+"/confirmFFT.csv";
-        Log.d("CSV",fileName);
+        fileName=path+"/confirmSegmentation.csv";
+        Log.d("csv",fileName);
         try {
             fileOutputStream = new FileOutputStream(fileName, false);
             // 文字コード指定
@@ -55,6 +55,20 @@ public class CsvHandle {
             bufferedWriter.newLine();
         }
     }
+    public void write(double[] rawData, boolean segmented) throws IOException {
+        String segment;
+        if(segmented)
+            segment = ", 1";
+        else
+            segment = ", 0";
+
+        for(int i=0;i<rawData.length;i++){
+            Log.d("csv",rawData[i]+segment);
+            bufferedWriter.write(rawData[i]+segment);
+            bufferedWriter.newLine();
+        }
+    }
+
     //ファイルを閉じる
     public void close() throws IOException {
         bufferedWriter.flush();
