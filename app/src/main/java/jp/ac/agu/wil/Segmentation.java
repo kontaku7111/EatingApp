@@ -51,7 +51,7 @@ public class Segmentation{
     void calculateSte(double [] newData){
         // Short term energyを音声信号にかけて得られた信号を格納する変数作成
         double [] energy = new double[(int)Math.floor((signal.length-frame_size)/frame_shift)+1];
-
+        signal = new double[preData.length + frame_size]; // 念のため追加（20200923）
         // 配列を連結
         System.arraycopy(preData,0, signal ,0, preData.length);
         System.arraycopy(newData,0, signal ,preData.length, newData.length);
