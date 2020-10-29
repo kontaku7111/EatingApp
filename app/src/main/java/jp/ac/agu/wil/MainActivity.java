@@ -68,7 +68,8 @@ public class MainActivity extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+//        setContentView(R.layout.activity_main);
+        setContentView(R.layout.layout_ja);
         DebugMessage=findViewById(R.id.DebugMessage);
         chewCount=findViewById(R.id.chewing_count);
         EnableButton(R.id.start_button,true);
@@ -172,7 +173,8 @@ public class MainActivity extends AppCompatActivity{
     public void BtnClick(View view) {
         switch (view.getId()) {
             case R.id.start_button:
-                DebugMessage.setText("You push a Start button");
+//                DebugMessage.setText("You push a Start button");
+                DebugMessage.setText("計測開始");
                 //ボタン押せるように
                 EnableButton(R.id.start_button,false);
                 EnableButton(R.id.stop_button,true);
@@ -194,7 +196,7 @@ public class MainActivity extends AppCompatActivity{
                 break;
 
             case R.id.stop_button:
-                DebugMessage.setText("You push a Stop button");
+                DebugMessage.setText("Y計測終了");
                 EnableButton(R.id.start_button,true);
                 EnableButton(R.id.stop_button,false);
                 do_loopback(false);
@@ -202,7 +204,8 @@ public class MainActivity extends AppCompatActivity{
             case R.id.bite_button:
                 DebugMessage.setText("Display chewing count every bite");
                 isTotal=false;
-                chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+//                chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+                chewCount.setText("咀嚼回数: "+MainActivity.bite_chewingCount);
                 break;
             case R.id.total_button:
                 DebugMessage.setText("Display chewing count in total");
@@ -212,7 +215,8 @@ public class MainActivity extends AppCompatActivity{
             case R.id.reset_button:
                 DebugMessage.setText("Reset chewing count in total");
                 total_chewingCount=0;
-                chewCount.setText("Chew count (Total): "+MainActivity.total_chewingCount);
+//                chewCount.setText("Chew count (Total): "+MainActivity.total_chewingCount);
+                chewCount.setText("咀嚼回数: "+MainActivity.total_chewingCount);
                 break;
             default:
                 break;

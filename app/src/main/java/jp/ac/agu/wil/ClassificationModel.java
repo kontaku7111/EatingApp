@@ -41,6 +41,14 @@ public class ClassificationModel {
     static private final Attribute feature20 = new Attribute("feature20");
     static private final Attribute feature21 = new Attribute("feature21");
     static private final Attribute feature22 = new Attribute("feature22");
+    static private final Attribute feature23 = new Attribute("feature23");
+    static private final Attribute feature24 = new Attribute("feature24");
+    static private final Attribute feature25 = new Attribute("feature25");
+    static private final Attribute feature26 = new Attribute("feature26");
+    static private final Attribute feature27 = new Attribute("feature27");
+    static private final Attribute feature28 = new Attribute("feature28");
+    static private final Attribute feature29 = new Attribute("feature29");
+    static private final Attribute feature30 = new Attribute("feature30");
 
     private final static List<String> classList = new ArrayList<String>()
     {
@@ -87,6 +95,14 @@ public class ClassificationModel {
             add(feature20);
             add(feature21);
             add(feature22);
+            add(feature23);
+            add(feature24);
+            add(feature25);
+            add(feature26);
+            add(feature27);
+            add(feature28);
+            add(feature29);
+            add(feature30);
             Attribute attributeClass = new Attribute("@@class@@", classList);
             add(attributeClass);
         }
@@ -127,6 +143,14 @@ public class ClassificationModel {
                 setValue(feature20,features[20]);
                 setValue(feature21,features[21]);
                 setValue(feature22,features[22]);
+                setValue(feature23,features[23]);
+                setValue(feature24,features[24]);
+                setValue(feature25,features[25]);
+                setValue(feature26,features[26]);
+                setValue(feature27,features[27]);
+                setValue(feature28,features[28]);
+                setValue(feature29,features[29]);
+                setValue(feature30,features[30]);
             }
         };
 

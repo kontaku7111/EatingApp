@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import weka.gui.Main;
+
 public class Segmentation{
     double [] preData;
     double[] signal;
@@ -246,22 +248,29 @@ public class Segmentation{
             case "chew":
                 MainActivity.bite_chewingCount++;
                 MainActivity.total_chewingCount++;
-                MainActivity.DebugMessage.setText("Chewing");
-                MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+//                MainActivity.DebugMessage.setText("Chewing");
+                MainActivity.DebugMessage.setText("よく噛もう！");
+//                MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+                MainActivity.chewCount.setText("咀嚼回数: "+MainActivity.bite_chewingCount);
                 Log.d("prediction","chew");
                 break;
             case "swallow":
                 Log.d("prediction","swallow");
-                MainActivity.DebugMessage.setText("Swallowing");
+//                MainActivity.DebugMessage.setText("Swallowing");
+                if(30<= MainActivity.bite_chewingCount){
+                    MainActivity.DebugMessage.setText("よく噛んでるね!!");
+                }
                 MainActivity.bite_chewingCount = 0;
-                MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+//                MainActivity.chewCount.setText("Chew count (Bite): "+MainActivity.bite_chewingCount);
+                MainActivity.chewCount.setText("咀嚼回数: "+MainActivity.bite_chewingCount);
                 break;
             case "talk":
-                MainActivity.DebugMessage.setText("Talking");
+//                MainActivity.DebugMessage.setText("Talking");
+                MainActivity.DebugMessage.setText("食事中の会話は大事!");
                 Log.d("prediction","talk");
                 break;
             case "other":
-                MainActivity.DebugMessage.setText("Other");
+//                MainActivity.DebugMessage.setText("Other");
                 Log.d("prediction","other");
                 break;
         }
