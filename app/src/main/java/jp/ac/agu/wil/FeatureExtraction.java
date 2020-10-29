@@ -52,7 +52,7 @@ public class FeatureExtraction {
         float zcc = zeroCrossCount(signal);
 
         // 最大周波数
-        float maxFreq = fftFeature(signal);
+        float [] freqFeature = fftFeature(signal);
 
         // 零交差率
         float [] zcr = zeroCrossingRate(signal, 8000, 0.02,0.005);
@@ -65,26 +65,26 @@ public class FeatureExtraction {
         zcrFeature[1] = zcrFeature[0] / zcr.length;
 
 
-        float [] feature =new float[m.length+adaFeature.length+rawFeature.length+1+1+ zcrFeature.length];
+        float [] feature =new float[m.length+adaFeature.length+rawFeature.length+1+freqFeature.length+ zcrFeature.length];
 
         System.arraycopy(m,0,feature,0,m.length);
         System.arraycopy(adaFeature,0,feature,m.length,adaFeature.length);
         System.arraycopy(rawFeature,0,feature,m.length +adaFeature.length,rawFeature.length);
         feature[m.length+adaFeature.length+rawFeature.length]=zcc;
-        feature[m.length+adaFeature.length+rawFeature.length+1] = maxFreq;
-        System.arraycopy(zcrFeature, 0, feature, m.length + adaFeature.length + rawFeature.length + 1 + 1, zcrFeature.length);
+        System.arraycopy(freqFeature, 0, feature, m.length + adaFeature.length + rawFeature.length + 1, freqFeature.length);
+        System.arraycopy(zcrFeature, 0, feature, m.length + adaFeature.length + rawFeature.length + 1 + freqFeature.length, zcrFeature.length);
 
         return feature;
     }
 
-    public float fftFeature(double[] signal){
+    public float[] fftFeature(double[] signal){
+        float [] feature = new float[9];
         int fftSize = signal.length;
         double[] ampFFT = new double [fftSize/2];
         // 計算用に引数の信号を格納
         double[] mFFTBuffer = signal;
         mFFT = new DoubleFFT_1D(fftSize);
-        double maxAmp = 0;
-        int maxIndex = 0;
+        double maxAmp[] = {0,0};
 
         // FFT 実行
         mFFT.realForward(mFFTBuffer);
@@ -93,15 +93,40 @@ public class FeatureExtraction {
             double real = mFFTBuffer[i * 2];
             double img = mFFTBuffer[i * 2 + 1];
             double amp = Math.sqrt(real * real + img * img);
-            if (amp > maxAmp) {
-                maxAmp = amp;
-                maxIndex = i;
+            if (amp > maxAmp[0]) {
+                maxAmp[0] = amp;
+                maxAmp[1] = i;
             }
         }
 
         // 最大周波数計算
-        float maxFrequency = maxIndex * SAMPLING_FREQUENCY / fftSize;
-        float feature =maxFrequency;
+        float maxFrequency = (float)maxAmp[1] * SAMPLING_FREQUENCY / fftSize;
+
+        // 特定範囲の周波数の最大値、合計、平均
+        double deltaF = SAMPLING_FREQUENCY/fftSize;
+        // 1000Hz、2000Hz、3000Hzに該当する要素番号
+        int indexNum_every1000Hz[] = {(int) Math.ceil(1000/deltaF), (int) Math.ceil(2000/deltaF), (int) Math.ceil(3000/deltaF), fftSize/2-1};
+        int orderEvery1000Hz = 0;
+        double sumAmp=0;
+        maxAmp[0] = 0; maxAmp[1]=0;
+        for(int indexFreq = 0; indexFreq < fftSize/2; indexFreq++){
+            sumAmp += ampFFT[indexFreq];
+            // 最大値更新
+            if (ampFFT[indexFreq] > maxAmp[0]) {
+                maxAmp[0] = ampFFT[indexFreq];
+                maxAmp[1] = indexFreq;
+            }
+            if(indexNum_every1000Hz[orderEvery1000Hz] == indexFreq){
+                //　特定範囲の最大周波数
+                feature[2*orderEvery1000Hz] = (float) (maxAmp[1]*deltaF);
+                // 特定範囲の合計
+                feature[2*orderEvery1000Hz+1] = (float) sumAmp;
+                maxAmp[0] = 0; maxAmp[1]=0;
+                sumAmp=0;
+                orderEvery1000Hz++;
+            }
+        }
+        feature[8] =maxFrequency;
         return feature;
     }
 

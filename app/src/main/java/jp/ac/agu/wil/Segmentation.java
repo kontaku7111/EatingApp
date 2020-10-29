@@ -156,8 +156,8 @@ public class Segmentation{
             {
                 count300ms++;
                 Log.d(TAG, "count300Time: "+ count300ms);
-                // セグメントの開始時点から300ms経った →　400msに変更
-                if (40 <= count300ms)
+                // セグメントの開始時点から300ms経った →　450msに変更
+                if (45 <= count300ms)
                 {
                     if (thresholdFlag){
                         // 300ms以内にセグメントがあるが、既に新しいセグメンテーションを行っている
