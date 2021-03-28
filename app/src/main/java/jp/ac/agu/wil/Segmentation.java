@@ -15,7 +15,7 @@ public class Segmentation{
     int frame_size=320; //sample (0.04s, 40ms)
     int frame_shift=80; // sample (0.01s, 10ms)
     boolean thresholdFlag =false;
-    final double THRESHOLD = 0.01;
+    double THRESHOLD = 0.01;
     boolean isWithin300msSegmented = false; //300msフラッグ
     boolean isCountTime = false;
     int count300ms=0;
@@ -35,6 +35,7 @@ public class Segmentation{
     double preTime = 0;
     String TAG = "Segmentation";
     CsvHandle csv;
+    double MAX_PEAK=0;
 
     Thread m_thread;
 
@@ -87,6 +88,8 @@ public class Segmentation{
                     //　300ms以内にセグメンテーションが行われてない
                     else
                     {
+                        if (MAX_PEAK < energy[i])
+                            MAX_PEAK = energy[i];
                         // セグメントにデータ追加
                         addSegmentedData(signal, i,false);
                     }
@@ -108,6 +111,8 @@ public class Segmentation{
                     //　300ms以内にセグメントがない
                     else
                     {
+                        if(MAX_PEAK<energy[i])
+                            MAX_PEAK=energy[i];
                         isCountTime=true;
                         count300ms = -1;
                         // セグメントにデータ追加
@@ -133,6 +138,7 @@ public class Segmentation{
                     }
                     else
                     {
+                        THRESHOLD = MAX_PEAK*0.5;
                         isWithin300msSegmented = true;
                         addP2SegmentedData(signal,i);
                     }
@@ -158,8 +164,8 @@ public class Segmentation{
             {
                 count300ms++;
                 Log.d(TAG, "count300Time: "+ count300ms);
-                // セグメントの開始時点から300ms経った →　450msに変更
-                if (45 <= count300ms)
+                // セグメントの開始時点から300ms経った →　400msに変更
+                if (40 <= count300ms)
                 {
                     if (thresholdFlag){
                         // 300ms以内にセグメントがあるが、既に新しいセグメンテーションを行っている
@@ -183,6 +189,8 @@ public class Segmentation{
                             // スペアとP3セグメントを初期化
                             spareSegmentedData.clear();
                             p2SegmentedData.clear();
+                            THRESHOLD=0.1;
+                            MAX_PEAK=0;
                         }
                         // 300ms以内にセグメントがなく、セグメンテーションを行っている途中
                         else{
@@ -190,6 +198,8 @@ public class Segmentation{
                         }
                     }
                     else{
+                        THRESHOLD=0.1;
+                        MAX_PEAK=0;
                         // 特徴量抽出
                         classification();
                         csv.write(removeInitial240Sample(wrapperToPrimitive(segmentedData)),true);
